@@ -634,12 +634,14 @@
         overflow: hidden;
         background: #fff;
         box-shadow: 0 0 40px rgba(255, 225, 77, 0.15);
-        transition: box-shadow 0.3s;
+        transition:
+          box-shadow 0.3s,
+          width 0.2s,
+          height 0.2s;
       }
       #qr-output canvas,
       #qr-output img {
-        width: 100% !important;
-        height: 100% !important;
+        display: block;
       }
       .qr-placeholder {
         display: flex;
@@ -1704,6 +1706,8 @@
 
         // Reset preview
         const output = document.getElementById("qr-output");
+        output.style.width = "220px";
+        output.style.height = "220px";
         output.innerHTML = `<div class="qr-placeholder"><i class="fa fa-qrcode"></i><span>Tu QR aparecerá aquí</span></div>`;
         document.getElementById("qr-preview-text").textContent = "";
         document.getElementById("dl-btns").style.display = "none";
@@ -1966,6 +1970,9 @@
       function renderQR(text, size, fg, bg, onDone) {
         const output = document.getElementById("qr-output");
         output.innerHTML = "";
+        const clampedSize = Math.min(size, 480);
+        output.style.width = clampedSize + "px";
+        output.style.height = clampedSize + "px";
 
         const matrix = getQRMatrix(text);
         if (!matrix) {
@@ -1975,7 +1982,7 @@
         }
 
         const canvas = document.createElement("canvas");
-        drawQROnCanvas(canvas, matrix, size, fg, bg, dotShape);
+        drawQROnCanvas(canvas, matrix, clampedSize, fg, bg, dotShape);
         output.appendChild(canvas);
 
         applyLogo(canvas, () => {
@@ -2052,7 +2059,10 @@
         lastQRText = text;
 
         // Reset vista previa antes de renderizar
-        document.getElementById("qr-output").innerHTML =
+        const qrOut = document.getElementById("qr-output");
+        qrOut.style.width = "220px";
+        qrOut.style.height = "220px";
+        qrOut.innerHTML =
           '<div class="qr-placeholder"><i class="fa fa-qrcode"></i><span>Generando...</span></div>';
         document.getElementById("qr-preview-text").textContent = "";
         document.getElementById("dl-btns").style.display = "none";
