@@ -1713,25 +1713,20 @@
 
       // ─── FULLSCREEN AUTO-HIDE CONTROLS ───
       let hideControlsTimer = null;
-      function showFSControls() {
+      document.addEventListener("mousemove", (e) => {
         if (!fsActive) return;
-        document.body.classList.add("controls-visible");
-        clearTimeout(hideControlsTimer);
-        hideControlsTimer = setTimeout(() => {
-          document.body.classList.remove("controls-visible");
-        }, 2500);
-      }
-      document.addEventListener("mousemove", () => {
-        if (fsActive) showFSControls();
-      });
-      document.getElementById("controls").addEventListener("mouseenter", () => {
-        if (fsActive) {
+        const threshold = window.innerHeight - 80;
+        if (e.clientY >= threshold) {
           clearTimeout(hideControlsTimer);
           document.body.classList.add("controls-visible");
+        } else {
+          if (document.body.classList.contains("controls-visible")) {
+            clearTimeout(hideControlsTimer);
+            hideControlsTimer = setTimeout(() => {
+              document.body.classList.remove("controls-visible");
+            }, 800);
+          }
         }
-      });
-      document.getElementById("controls").addEventListener("mouseleave", () => {
-        if (fsActive) showFSControls();
       });
 
       function setTrackName(name) {
