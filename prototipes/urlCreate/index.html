@@ -1650,21 +1650,23 @@
 
         const buf = await crypto.subtle.digest(
           "SHA-256",
-          new TextEncoder().encode(fp)
+          new TextEncoder().encode(fp),
         );
         const hex = Array.from(new Uint8Array(buf))
           .map((b) => b.toString(16).padStart(2, "0"))
           .join("");
 
         // Formatear como UUID v4
-        sid = `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20,32)}`;
+        sid = `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
         localStorage.setItem("qrft_sid", sid);
         return sid;
       }
 
       // SESSION_ID se resuelve async; bloqueamos el init hasta tenerlo
       let SESSION_ID = null;
-      const sessionReady = getSessionId().then((sid) => { SESSION_ID = sid; });
+      const sessionReady = getSessionId().then((sid) => {
+        SESSION_ID = sid;
+      });
 
       /* ════════════════════════════════════
    STATE
@@ -1944,7 +1946,8 @@
               const pad = s * 0.08;
               const rs = s - pad * 2;
               const r2 = rs * 0.35;
-              const rx = px + pad, ry = py + pad;
+              const rx = px + pad,
+                ry = py + pad;
               ctx.beginPath();
               ctx.moveTo(rx + r2, ry);
               ctx.arcTo(rx + rs, ry, rx + rs, ry + rs, r2);
@@ -1964,7 +1967,8 @@
 
         const matrix = getQRMatrix(text);
         if (!matrix) {
-          output.innerHTML = '<div class="qr-placeholder"><i class="fa fa-exclamation-triangle"></i><span>Error generando QR</span></div>';
+          output.innerHTML =
+            '<div class="qr-placeholder"><i class="fa fa-exclamation-triangle"></i><span>Error generando QR</span></div>';
           return;
         }
 
@@ -1974,7 +1978,12 @@
 
         applyLogo(canvas, () => {
           gsap.set(output, { scale: 1, opacity: 1 });
-          gsap.from(output, { scale: 0.88, opacity: 0, duration: 0.4, ease: "back.out(1.5)" });
+          gsap.from(output, {
+            scale: 0.88,
+            opacity: 0,
+            duration: 0.4,
+            ease: "back.out(1.5)",
+          });
           if (onDone) onDone();
         });
       }
@@ -2246,7 +2255,10 @@
 
           // Si borraron caché, el servidor recupera los QRs por IP y devuelve
           // el session_id original — lo restauramos en localStorage
-          if (data.recovered_session_id && data.recovered_session_id !== SESSION_ID) {
+          if (
+            data.recovered_session_id &&
+            data.recovered_session_id !== SESSION_ID
+          ) {
             SESSION_ID = data.recovered_session_id;
             localStorage.setItem("qrft_sid", SESSION_ID);
             toast("Historial recuperado ✓");
@@ -2305,6 +2317,7 @@
         <div class="hi-preview">${h.name ? h.name : h.text.length > 32 ? h.text.slice(0, 29) + "…" : h.text}</div>
         <div class="hi-date">${h.date}</div>
       </div>
+      <button class="hi-del" onclick="event.stopPropagation(); delEntry(${h.id})" title="Eliminar"><i class="fa fa-trash"></i></button>
     </div>
   `,
           )
