@@ -1712,14 +1712,19 @@
       }
 
       // ─── FULLSCREEN AUTO-HIDE CONTROLS ───
+      let hideControlsTimer = null;
       document.addEventListener("mousemove", (e) => {
         if (!fsActive) return;
-        if (e.clientY >= window.innerHeight - 80) {
+        const threshold = window.innerHeight - 80;
+        if (e.clientY >= threshold) {
+          clearTimeout(hideControlsTimer);
           document.body.classList.add("controls-visible");
+        } else {
+          clearTimeout(hideControlsTimer);
+          hideControlsTimer = setTimeout(() => {
+            document.body.classList.remove("controls-visible");
+          }, 80);
         }
-      });
-      document.getElementById("controls").addEventListener("mouseleave", () => {
-        if (fsActive) document.body.classList.remove("controls-visible");
       });
 
       function setTrackName(name) {
