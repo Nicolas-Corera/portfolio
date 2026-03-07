@@ -634,13 +634,14 @@
         overflow: hidden;
         background: #fff;
         box-shadow: 0 0 40px rgba(255, 225, 77, 0.15);
-        transition:
-          box-shadow 0.3s,
-          width 0.2s,
-          height 0.2s;
+        transition: box-shadow 0.3s;
       }
       #qr-output canvas,
       #qr-output img {
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
         display: block;
       }
       .qr-placeholder {
@@ -1681,6 +1682,7 @@
       let logoDataUrl = null;
       let history = []; // se carga desde Supabase al iniciar
       let lastQRText = "";
+      let currentQRCanvas = null; // canvas real al tamaño del slider para descargas
 
       /* ════════════════════════════════════
    TABS
@@ -1706,9 +1708,10 @@
 
         // Reset preview
         const output = document.getElementById("qr-output");
-        output.style.width = "220px";
-        output.style.height = "220px";
+        output.style.width = "";
+        output.style.height = "";
         output.innerHTML = `<div class="qr-placeholder"><i class="fa fa-qrcode"></i><span>Tu QR aparecerá aquí</span></div>`;
+        currentQRCanvas = null;
         document.getElementById("qr-preview-text").textContent = "";
         document.getElementById("dl-btns").style.display = "none";
 
@@ -1970,9 +1973,9 @@
       function renderQR(text, size, fg, bg, onDone) {
         const output = document.getElementById("qr-output");
         output.innerHTML = "";
-        const clampedSize = Math.min(size, 480);
-        output.style.width = clampedSize + "px";
-        output.style.height = clampedSize + "px";
+        output.style.width = "";
+        output.style.height = "";
+        currentQRCanvas = null;
 
         const matrix = getQRMatrix(text);
         if (!matrix) {
@@ -1981,19 +1984,27 @@
           return;
         }
 
-        const canvas = document.createElement("canvas");
-        drawQROnCanvas(canvas, matrix, clampedSize, fg, bg, dotShape);
-        output.appendChild(canvas);
+        // Canvas real al tamaño elegido (para descargas)
+        const realCanvas = document.createElement("canvas");
+        drawQROnCanvas(realCanvas, matrix, size, fg, bg, dotShape);
 
-        applyLogo(canvas, () => {
-          gsap.set(output, { scale: 1, opacity: 1 });
-          gsap.from(output, {
-            scale: 0.88,
-            opacity: 0,
-            duration: 0.4,
-            ease: "back.out(1.5)",
+        applyLogo(realCanvas, () => {
+          currentQRCanvas = realCanvas;
+
+          // Canvas de preview (siempre 220px, solo visual)
+          const previewCanvas = document.createElement("canvas");
+          drawQROnCanvas(previewCanvas, matrix, 220, fg, bg, dotShape);
+          applyLogo(previewCanvas, () => {
+            output.appendChild(previewCanvas);
+            gsap.set(output, { scale: 1, opacity: 1 });
+            gsap.from(output, {
+              scale: 0.88,
+              opacity: 0,
+              duration: 0.4,
+              ease: "back.out(1.5)",
+            });
+            if (onDone) onDone();
           });
-          if (onDone) onDone();
         });
       }
 
@@ -2060,10 +2071,11 @@
 
         // Reset vista previa antes de renderizar
         const qrOut = document.getElementById("qr-output");
-        qrOut.style.width = "220px";
-        qrOut.style.height = "220px";
+        qrOut.style.width = "";
+        qrOut.style.height = "";
         qrOut.innerHTML =
           '<div class="qr-placeholder"><i class="fa fa-qrcode"></i><span>Generando...</span></div>';
+        currentQRCanvas = null;
         document.getElementById("qr-preview-text").textContent = "";
         document.getElementById("dl-btns").style.display = "none";
 
@@ -2121,7 +2133,7 @@
    DOWNLOADS
 ════════════════════════════════════ */
       function getCanvas() {
-        return document.querySelector("#qr-output canvas");
+        return currentQRCanvas;
       }
 
       document.getElementById("dl-png").addEventListener("click", () => {
@@ -2354,16 +2366,26 @@
         const qrDiv = document.getElementById("modal-qr");
         const textEl = document.getElementById("modal-text");
 
-        // Clear & render QR inside modal usando matrix directa
-        qrDiv.innerHTML = "";
         const fg = document.getElementById("c-fg").value || "#000000";
         const bg = document.getElementById("c-bg").value || "#ffffff";
+        const size = parseInt(document.getElementById("sz").value) || 256;
         const matrix = getQRMatrix(e.text);
+
+        // Canvas real al tamaño del slider (para descargas)
+        qrDiv.innerHTML = "";
+        currentQRCanvas = null;
         if (matrix) {
-          const canvas = document.createElement("canvas");
-          drawQROnCanvas(canvas, matrix, 220, fg, bg, dotShape);
-          qrDiv.appendChild(canvas);
-          applyLogo(canvas);
+          const realCanvas = document.createElement("canvas");
+          drawQROnCanvas(realCanvas, matrix, size, fg, bg, dotShape);
+          applyLogo(realCanvas, () => {
+            currentQRCanvas = realCanvas;
+          });
+
+          // Canvas de preview en el modal (220px)
+          const previewCanvas = document.createElement("canvas");
+          drawQROnCanvas(previewCanvas, matrix, 220, fg, bg, dotShape);
+          qrDiv.appendChild(previewCanvas);
+          applyLogo(previewCanvas);
         }
 
         textEl.textContent =
@@ -2408,7 +2430,7 @@
 
       /* Modal downloads */
       function getModalCanvas() {
-        return document.querySelector("#modal-qr canvas");
+        return currentQRCanvas;
       }
 
       document.getElementById("mdl-png").addEventListener("click", () => {
