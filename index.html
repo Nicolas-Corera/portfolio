@@ -773,13 +773,16 @@
         color: var(--text-main);
         text-decoration: none;
         position: relative;
-        display: inline-block;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
         font-family: var(--font-heading);
         word-break: break-all;
       }
 
-      .email-link i{
-        font-size: 1rem;
+      .email-link i {
+        font-size: 1.8rem;
       }
 
       .email-link::after {
@@ -1471,12 +1474,12 @@
       </p>
 
       <a href="#" class="email-link hover-target" id="openModal">
+        <i class="fa-solid fa-paper-plane"></i>
         <span
           class="__cf_email__"
           data-cfemail="4f21262c20232e3c2c203d2a3d2e0f28222e2623612c2022"
           >Contacto</span
         >
-        <i class="fa-solid fa-paper-plane"></i>
       </a>
 
       <p
