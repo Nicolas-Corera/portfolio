@@ -6,6 +6,11 @@
     <title>QRFT — Generador de QR</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
+      rel="shortcut icon"
+      href="../../assets/logoQrFt.png"
+      type="image/x-icon"
+    />
+    <link
       href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
       rel="stylesheet"
     />
@@ -135,7 +140,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 0 20px 80px;
+        padding: 0 20px 20px;
       }
 
       /* HEADER */
@@ -964,7 +969,6 @@
         color: var(--muted);
         word-break: break-all;
         text-align: center;
-        max-width: 260px;
         opacity: 0.8;
       }
       .modal-dl-btns {
@@ -999,6 +1003,76 @@
       }
       .modal-dl-btns .btn-dl.share:hover {
         background: rgba(167, 139, 250, 0.1);
+      }
+
+      #modal-overlayTerms {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.75);
+        z-index: 5000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      #modal-overlayTerms.open {
+        display: flex;
+      }
+      #modal-boxTerms {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        padding: 32px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        position: relative;
+        max-width: 300px;
+        width: 100%;
+        box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7);
+      }
+      #modal-boxTerms::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--accent),
+          var(--accent2),
+          transparent
+        );
+        border-radius: 22px 22px 0 0;
+      }
+      #modal-content {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+      }
+
+      .modal-suggest-form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+        margin-top: 0.5rem;
+      }
+
+      .modal-suggest-form textarea {
+        min-height: 100px;
+        resize: none;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        padding: 10px;
+        font-family: var(--mono);
+        font-size: 0.75rem;
       }
 
       /* TOAST */
@@ -1062,6 +1136,81 @@
       ::-webkit-scrollbar-thumb {
         background: var(--border);
         border-radius: 3px;
+      }
+
+      footer {
+        width: 100%;
+        max-width: 900px;
+        display: flex;
+        flex-direction: column;
+        padding: 30px 0 0;
+      }
+      .footerTop {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 30px 0 0;
+      }
+
+      .terms button {
+        background: transparent;
+        text-decoration: none;
+        font-family: var(--mono);
+        font-size: 0.6rem;
+        color: var(--muted);
+        padding: 4px 5px;
+        text-transform: uppercase;
+        transition: 0.2s all ease;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        cursor: pointer;
+      }
+
+      .terms button:hover {
+        font-family: var(--mono);
+        font-size: 0.6rem;
+        color: var(--muted);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+
+      .footerDown {
+        display: flex;
+        justify-content: right;
+        align-items: center;
+        text-decoration: none;
+        font-family: var(--mono);
+        font-size: 0.6rem;
+        color: var(--muted);
+        padding: 20px 5px 0;
+        text-transform: uppercase;
+        transition: 0.2s all ease;
+        margin-top: 1rem;
+        position: relative;
+      }
+
+      .footerDown::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60%; /* largo de la línea */
+        height: 1px;
+        background: var(--border);
+      }
+      .footerDown a {
+        text-decoration: none;
+        font-family: var(--mono);
+        font-size: 0.6rem;
+        color: var(--muted);
+        transition: all 0.2s ease;
+      }
+
+      .footerDown a:hover {
+        color: white;
       }
     </style>
   </head>
@@ -1560,6 +1709,35 @@
           </div>
         </div>
       </div>
+
+      <footer class="fi" style="animation-delay: 0.05s">
+        <div class="footerTop">
+          <div class="logo">
+            <div class="logo-icon"><i class="fa fa-qrcode"></i></div>
+            QR<em>FT</em>
+          </div>
+          <div class="terms">
+            <button onclick="openModalTerms('terminos')">
+              Términos y Condiciones
+            </button>
+            <button onclick="openModalTerms('sugerencias')">
+              Buzón de sugerencias
+            </button>
+            <button onclick="openModalTerms('privacidad')">
+              Política de privacidad
+            </button>
+          </div>
+          <div class="badge">QR Generator</div>
+        </div>
+        <div class="footerDown">
+          <p>
+            &reg; 2026 All Rights Reserved | Created by
+            <a href="https://github.com/Nicolas-Corera" target="_blank"
+              >Nicolás Corera</a
+            >
+          </p>
+        </div>
+      </footer>
     </div>
     <!-- /wrap -->
 
@@ -1594,6 +1772,103 @@
         </div>
       </div>
     </div>
+    <div id="modal-overlayTerms">
+      <div id="modal-boxTerms">
+        <button class="modal-close" onclick="closeModalTerms()">✕</button>
+
+        <div class="modal-label" id="modal-titleTerms">MODAL</div>
+
+        <div id="modal-contentTerms"></div>
+      </div>
+    </div>
+
+    <script>
+      const modalData = {
+        terminos: {
+          title: "TÉRMINOS Y CONDICIONES",
+          content: `
+    <p class="modal-text">
+    El uso de este sitio implica la aceptación de nuestros términos y condiciones.
+    El usuario se compromete a utilizar la plataforma de forma responsable y legal.
+    </p>
+
+    <p class="modal-text">
+    Nos reservamos el derecho de modificar el contenido o las condiciones
+    de uso sin previo aviso.
+    </p>
+    `,
+        },
+
+        privacidad: {
+          title: "POLÍTICA DE PRIVACIDAD",
+          content: `
+    <p class="modal-text">
+    No recopilamos información personal sin consentimiento.
+    Los datos utilizados dentro del sistema son únicamente para
+    mejorar la experiencia del usuario.
+    </p>
+
+    <p class="modal-text">
+    Nunca compartimos información con terceros.
+    </p>
+    `,
+        },
+
+        sugerencias: {
+          title: "BUZÓN DE SUGERENCIAS",
+          content: `
+    <p class="modal-text">
+    Si tienes ideas o sugerencias para mejorar la plataforma,
+    puedes enviarlas aquí.
+    </p>
+
+    <form class="modal-suggest-form">
+      <textarea placeholder="Escribe tu sugerencia..." required></textarea>
+      <button type="submit" class="btn-dl share">Enviar sugerencia</button>
+    </form>
+    `,
+        },
+      };
+
+      function openModalTerms(type) {
+        const modal = modalData[type];
+
+        document.getElementById("modal-titleTerms").innerText = modal.title;
+        document.getElementById("modal-contentTerms").innerHTML = modal.content;
+
+        // document.getElementById("modal-overlayTerms").classList.add("open");
+        const overlayTerms = document.getElementById("modal-overlayTerms");
+
+        overlayTerms.classList.add("open");
+        gsap.killTweensOf("#modal-boxTerms");
+        gsap.set("#modal-boxTerms", { scale: 1, opacity: 1 });
+        gsap.from("#modal-boxTerms", {
+          scale: 0.9,
+          opacity: 0,
+          duration: 0.35,
+          ease: "back.out(1.2)",
+        });
+      }
+
+      function closeModalTerms() {
+        const overlayTerms = document.getElementById("modal-overlayTerms");
+        gsap.to("#modal-boxTerms", {
+          scale: 0.9,
+          opacity: 0,
+          duration: 0.25,
+          ease: "power2.in",
+          onComplete() {
+            overlayTerms.classList.remove("open");
+          },
+        });
+      }
+
+      document
+        .getElementById("modal-overlayTerms")
+        .addEventListener("click", (e) => {
+          if (e.target.id === "modal-overlayTerms") closeModalTerms();
+        });
+    </script>
 
     <script>
       /* ════════════════════════════════════
@@ -1682,7 +1957,19 @@
       let logoDataUrl = null;
       let history = []; // se carga desde Supabase al iniciar
       let lastQRText = "";
+      let lastQRName = ""; // nombre del QR generado más recientemente (panel principal)
       let currentQRCanvas = null; // canvas real al tamaño del slider para descargas
+      let currentModalName = ""; // nombre del QR actualmente abierto en el modal
+
+      /* Devuelve el nombre de archivo sanitizado: si hay nombre lo usa, si no "qrft" */
+      function getFileName(name, ext) {
+        const base =
+          (name || "")
+            .trim()
+            .replace(/[^a-zA-Z0-9_\-. áéíóúÁÉÍÓÚñÑüÜ]/g, "")
+            .trim() || "qrft";
+        return base + "." + ext;
+      }
 
       /* ════════════════════════════════════
    TABS
@@ -2068,6 +2355,7 @@
         const bg = document.getElementById("c-bg").value;
 
         lastQRText = text;
+        lastQRName = document.getElementById("f-qr-name").value.trim();
 
         // Reset vista previa antes de renderizar
         const qrOut = document.getElementById("qr-output");
@@ -2140,7 +2428,7 @@
         const c = getCanvas();
         if (!c) return;
         const a = document.createElement("a");
-        a.download = "qrft.png";
+        a.download = getFileName(lastQRName, "png");
         a.href = c.toDataURL("image/png");
         a.click();
         toast("PNG descargado");
@@ -2158,7 +2446,7 @@
         ctx.fillRect(0, 0, tmp.width, tmp.height);
         ctx.drawImage(c, 0, 0);
         const a = document.createElement("a");
-        a.download = "qrft.jpg";
+        a.download = getFileName(lastQRName, "jpg");
         a.href = tmp.toDataURL("image/jpeg", 0.95);
         a.click();
         toast("JPG descargado");
@@ -2173,7 +2461,7 @@
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}"><image href="${dataUrl}" width="${s}" height="${s}"/></svg>`;
         const blob = new Blob([svg], { type: "image/svg+xml" });
         const a = document.createElement("a");
-        a.download = "qrft.svg";
+        a.download = getFileName(lastQRName, "svg");
         a.href = URL.createObjectURL(blob);
         a.click();
         toast("SVG descargado");
@@ -2200,7 +2488,9 @@
           const c = getCanvas();
           if (!c) return;
           c.toBlob(async (blob) => {
-            const file = new File([blob], "qrft.png", { type: "image/png" });
+            const file = new File([blob], getFileName(lastQRName, "png"), {
+              type: "image/png",
+            });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
               try {
                 await navigator.share({ files: [file], title: "Mi QR — QRFT" });
@@ -2362,6 +2652,7 @@
       function openModal(i) {
         const e = history[i];
         if (!e) return;
+        currentModalName = e.name || "";
         const overlay = document.getElementById("modal-overlay");
         const qrDiv = document.getElementById("modal-qr");
         const textEl = document.getElementById("modal-text");
@@ -2437,7 +2728,7 @@
         const c = getModalCanvas();
         if (!c) return;
         const a = document.createElement("a");
-        a.download = "qrft.png";
+        a.download = getFileName(currentModalName, "png");
         a.href = c.toDataURL("image/png");
         a.click();
         toast("PNG descargado");
@@ -2453,7 +2744,7 @@
         ctx.fillRect(0, 0, tmp.width, tmp.height);
         ctx.drawImage(c, 0, 0);
         const a = document.createElement("a");
-        a.download = "qrft.jpg";
+        a.download = getFileName(currentModalName, "jpg");
         a.href = tmp.toDataURL("image/jpeg", 0.95);
         a.click();
         toast("JPG descargado");
@@ -2465,7 +2756,7 @@
           s = c.width;
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}"><image href="${dataUrl}" width="${s}" height="${s}"/></svg>`;
         const a = document.createElement("a");
-        a.download = "qrft.svg";
+        a.download = getFileName(currentModalName, "svg");
         a.href = URL.createObjectURL(
           new Blob([svg], { type: "image/svg+xml" }),
         );
@@ -2494,7 +2785,11 @@
           const c = getModalCanvas();
           if (!c) return;
           c.toBlob(async (blob) => {
-            const file = new File([blob], "qrft.png", { type: "image/png" });
+            const file = new File(
+              [blob],
+              getFileName(currentModalName, "png"),
+              { type: "image/png" },
+            );
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
               try {
                 await navigator.share({ files: [file], title: "Mi QR — QRFT" });
