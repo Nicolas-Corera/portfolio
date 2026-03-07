@@ -1650,23 +1650,21 @@
 
         const buf = await crypto.subtle.digest(
           "SHA-256",
-          new TextEncoder().encode(fp),
+          new TextEncoder().encode(fp)
         );
         const hex = Array.from(new Uint8Array(buf))
           .map((b) => b.toString(16).padStart(2, "0"))
           .join("");
 
         // Formatear como UUID v4
-        sid = `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
+        sid = `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20,32)}`;
         localStorage.setItem("qrft_sid", sid);
         return sid;
       }
 
       // SESSION_ID se resuelve async; bloqueamos el init hasta tenerlo
       let SESSION_ID = null;
-      const sessionReady = getSessionId().then((sid) => {
-        SESSION_ID = sid;
-      });
+      const sessionReady = getSessionId().then((sid) => { SESSION_ID = sid; });
 
       /* ════════════════════════════════════
    STATE
@@ -1882,99 +1880,110 @@
       /* ════════════════════════════════════
    RENDER QR
 ════════════════════════════════════ */
+
+      // Obtiene la matrix booleana del QR usando QRCode.js internals
+      function getQRMatrix(text) {
+        const qr = new QRCode(document.createElement("div"), {
+          text,
+          width: 256,
+          height: 256,
+          correctLevel: QRCode.CorrectLevel.H,
+        });
+        // QRCode.js expone _oQRCode._oDataCache o _oQRCode con la matrix
+        const inner = qr._oQRCode;
+        if (!inner) return null;
+        const count = inner.getModuleCount();
+        const matrix = [];
+        for (let r = 0; r < count; r++) {
+          matrix[r] = [];
+          for (let c = 0; c < count; c++) {
+            matrix[r][c] = inner.isDark(r, c);
+          }
+        }
+        return matrix;
+      }
+
+      // Dibuja el QR en un canvas existente usando la matrix directa
+      function drawQROnCanvas(canvas, matrix, size, fg, bg, shape) {
+        const count = matrix.length;
+        const QUIET = 4; // módulos de margen
+        const total = count + QUIET * 2;
+        canvas.width = size;
+        canvas.height = size;
+        const cellSize = size / total;
+        const ctx = canvas.getContext("2d");
+
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, size, size);
+
+        // Zonas de finder (col, row) en coords de matrix — siempre cuadradas
+        function isFinder(row, col) {
+          const last = count - 7;
+          return (
+            (row < 7 && col < 7) ||
+            (row < 7 && col >= last) ||
+            (row >= last && col < 7)
+          );
+        }
+
+        for (let r = 0; r < count; r++) {
+          for (let c = 0; c < count; c++) {
+            if (!matrix[r][c]) continue;
+            ctx.fillStyle = fg;
+            const px = (c + QUIET) * cellSize;
+            const py = (r + QUIET) * cellSize;
+            const s = cellSize;
+
+            if (shape === "square" || isFinder(r, c)) {
+              ctx.fillRect(px, py, s, s);
+            } else if (shape === "dot") {
+              ctx.beginPath();
+              ctx.arc(px + s / 2, py + s / 2, s * 0.42, 0, Math.PI * 2);
+              ctx.fill();
+            } else if (shape === "round") {
+              const pad = s * 0.08;
+              const rs = s - pad * 2;
+              const r2 = rs * 0.35;
+              const rx = px + pad, ry = py + pad;
+              ctx.beginPath();
+              ctx.moveTo(rx + r2, ry);
+              ctx.arcTo(rx + rs, ry, rx + rs, ry + rs, r2);
+              ctx.arcTo(rx + rs, ry + rs, rx, ry + rs, r2);
+              ctx.arcTo(rx, ry + rs, rx, ry, r2);
+              ctx.arcTo(rx, ry, rx + rs, ry, r2);
+              ctx.closePath();
+              ctx.fill();
+            }
+          }
+        }
+      }
+
       function renderQR(text, size, fg, bg, onDone) {
         const output = document.getElementById("qr-output");
         output.innerHTML = "";
 
-        new QRCode(output, {
-          text,
-          width: size,
-          height: size,
-          colorDark: fg,
-          colorLight: bg,
-          correctLevel: QRCode.CorrectLevel.H,
-        });
+        const matrix = getQRMatrix(text);
+        if (!matrix) {
+          output.innerHTML = '<div class="qr-placeholder"><i class="fa fa-exclamation-triangle"></i><span>Error generando QR</span></div>';
+          return;
+        }
 
-        // QRCode.js renders async — poll until canvas is ready
-        waitForCanvas(output, (canvas) => {
-          if (dotShape !== "square") applyDotShape(canvas, fg, bg, dotShape);
-          applyLogo(canvas, () => {
-            gsap.set(output, { scale: 1, opacity: 1 });
-            gsap.from(output, {
-              scale: 0.88,
-              opacity: 0,
-              duration: 0.4,
-              ease: "back.out(1.5)",
-            });
-            if (onDone) onDone();
-          });
+        const canvas = document.createElement("canvas");
+        drawQROnCanvas(canvas, matrix, size, fg, bg, dotShape);
+        output.appendChild(canvas);
+
+        applyLogo(canvas, () => {
+          gsap.set(output, { scale: 1, opacity: 1 });
+          gsap.from(output, { scale: 0.88, opacity: 0, duration: 0.4, ease: "back.out(1.5)" });
+          if (onDone) onDone();
         });
       }
 
       function waitForCanvas(container, cb, tries = 0) {
         const c = container.querySelector("canvas");
         if (c && c.width > 0) return cb(c);
-        if (tries > 40) return; // give up after ~400ms
+        if (tries > 40) return;
         setTimeout(() => waitForCanvas(container, cb, tries + 1), 10);
-      }
-
-      /* ── Dot shape transform ── */
-      function applyDotShape(canvas, fg, bg, shape) {
-        const ctx = canvas.getContext("2d");
-        const w = canvas.width,
-          h = canvas.height;
-        const imgData = ctx.getImageData(0, 0, w, h);
-        const data = imgData.data;
-
-        // Detect cell size: find the first dark pixel in row 0, then measure
-        // how many consecutive dark pixels follow — that's one module wide.
-        let cellSize = 10; // safe fallback
-        let firstDark = -1;
-        for (let x = 0; x < w; x++) {
-          if (data[(0 * w + x) * 4] < 128) {
-            firstDark = x;
-            break;
-          }
-        }
-        if (firstDark >= 0) {
-          let run = 0;
-          for (let x = firstDark; x < w; x++) {
-            if (data[(0 * w + x) * 4] < 128) run++;
-            else break;
-          }
-          if (run >= 1) cellSize = run;
-        }
-
-        // Redraw with shapes
-        ctx.fillStyle = bg;
-        ctx.fillRect(0, 0, w, h);
-
-        for (let cy = 0; cy < h; cy += cellSize) {
-          for (let cx = 0; cx < w; cx += cellSize) {
-            const i = (cy * w + cx) * 4;
-            const dark = data[i] < 128;
-            if (!dark) continue;
-            ctx.fillStyle = fg;
-            const x = cx + 0.5,
-              y = cy + 0.5,
-              s = cellSize - 1;
-            if (shape === "dot") {
-              ctx.beginPath();
-              ctx.arc(x + s / 2, y + s / 2, (s / 2) * 0.85, 0, Math.PI * 2);
-              ctx.fill();
-            } else if (shape === "round") {
-              const r = s * 0.3;
-              ctx.beginPath();
-              ctx.moveTo(x + r, y);
-              ctx.arcTo(x + s, y, x + s, y + s, r);
-              ctx.arcTo(x + s, y + s, x, y + s, r);
-              ctx.arcTo(x, y + s, x, y, r);
-              ctx.arcTo(x, y, x + s, y, r);
-              ctx.closePath();
-              ctx.fill();
-            }
-          }
-        }
       }
 
       /* ── Logo overlay con callback ── */
@@ -2237,10 +2246,7 @@
 
           // Si borraron caché, el servidor recupera los QRs por IP y devuelve
           // el session_id original — lo restauramos en localStorage
-          if (
-            data.recovered_session_id &&
-            data.recovered_session_id !== SESSION_ID
-          ) {
+          if (data.recovered_session_id && data.recovered_session_id !== SESSION_ID) {
             SESSION_ID = data.recovered_session_id;
             localStorage.setItem("qrft_sid", SESSION_ID);
             toast("Historial recuperado ✓");
@@ -2323,24 +2329,17 @@
         const qrDiv = document.getElementById("modal-qr");
         const textEl = document.getElementById("modal-text");
 
-        // Clear & render QR inside modal
+        // Clear & render QR inside modal usando matrix directa
         qrDiv.innerHTML = "";
-        new QRCode(qrDiv, {
-          text: e.text,
-          width: 220,
-          height: 220,
-          colorDark: document.getElementById("c-fg").value || "#000000",
-          colorLight: document.getElementById("c-bg").value || "#ffffff",
-          correctLevel: QRCode.CorrectLevel.H,
-        });
-        waitForCanvas(qrDiv, (canvas) => {
-          if (dotShape !== "square") {
-            const fg = document.getElementById("c-fg").value || "#000000";
-            const bg = document.getElementById("c-bg").value || "#ffffff";
-            applyDotShape(canvas, fg, bg, dotShape);
-          }
+        const fg = document.getElementById("c-fg").value || "#000000";
+        const bg = document.getElementById("c-bg").value || "#ffffff";
+        const matrix = getQRMatrix(e.text);
+        if (matrix) {
+          const canvas = document.createElement("canvas");
+          drawQROnCanvas(canvas, matrix, 220, fg, bg, dotShape);
+          qrDiv.appendChild(canvas);
           applyLogo(canvas);
-        });
+        }
 
         textEl.textContent =
           e.text.length > 80 ? e.text.slice(0, 77) + "…" : e.text;
