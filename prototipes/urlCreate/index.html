@@ -1650,21 +1650,23 @@
 
         const buf = await crypto.subtle.digest(
           "SHA-256",
-          new TextEncoder().encode(fp)
+          new TextEncoder().encode(fp),
         );
         const hex = Array.from(new Uint8Array(buf))
           .map((b) => b.toString(16).padStart(2, "0"))
           .join("");
 
         // Formatear como UUID v4
-        sid = `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20,32)}`;
+        sid = `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
         localStorage.setItem("qrft_sid", sid);
         return sid;
       }
 
       // SESSION_ID se resuelve async; bloqueamos el init hasta tenerlo
       let SESSION_ID = null;
-      const sessionReady = getSessionId().then((sid) => { SESSION_ID = sid; });
+      const sessionReady = getSessionId().then((sid) => {
+        SESSION_ID = sid;
+      });
 
       /* ════════════════════════════════════
    STATE
@@ -1924,24 +1926,24 @@
         const imgData = ctx.getImageData(0, 0, w, h);
         const data = imgData.data;
 
-        // Read existing pixels to find dark modules
-        const fgR = parseInt(fg.slice(1, 3), 16),
-          fgG = parseInt(fg.slice(3, 5), 16),
-          fgB = parseInt(fg.slice(5, 7), 16);
-        const bgR = parseInt(bg.slice(1, 3), 16),
-          bgG = parseInt(bg.slice(3, 5), 16),
-          bgB = parseInt(bg.slice(5, 7), 16);
-
-        // Detect cell size by scanning first dark pixel run
-        let cellSize = 1;
+        // Detect cell size: find the first dark pixel in row 0, then measure
+        // how many consecutive dark pixels follow — that's one module wide.
+        let cellSize = 10; // safe fallback
+        let firstDark = -1;
         for (let x = 0; x < w; x++) {
-          const i = x * 4;
-          if (data[i] < 128) {
-            cellSize = x;
+          if (data[(0 * w + x) * 4] < 128) {
+            firstDark = x;
             break;
           }
         }
-        if (cellSize < 2) cellSize = 10;
+        if (firstDark >= 0) {
+          let run = 0;
+          for (let x = firstDark; x < w; x++) {
+            if (data[(0 * w + x) * 4] < 128) run++;
+            else break;
+          }
+          if (run >= 1) cellSize = run;
+        }
 
         // Redraw with shapes
         ctx.fillStyle = bg;
@@ -2235,7 +2237,10 @@
 
           // Si borraron caché, el servidor recupera los QRs por IP y devuelve
           // el session_id original — lo restauramos en localStorage
-          if (data.recovered_session_id && data.recovered_session_id !== SESSION_ID) {
+          if (
+            data.recovered_session_id &&
+            data.recovered_session_id !== SESSION_ID
+          ) {
             SESSION_ID = data.recovered_session_id;
             localStorage.setItem("qrft_sid", SESSION_ID);
             toast("Historial recuperado ✓");
