@@ -1630,11 +1630,6 @@
    toda la autenticación corre en el servidor con service_role.
 ════════════════════════════════════ */
       const SUPABASE_URL = "https://xqhtnpksjigqveuwqajg.supabase.co";
-      const SUPABASE_ANON_KEY = "sb_secret_JFlNeA2KxFmt3pEg1-sUeA_1AZpfFGJ"; // Settings → API → anon public
-      const FN_HEADERS = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      };
       const FN = (name) => `${SUPABASE_URL}/functions/v1/${name}`;
 
       /* ── Session ID anónimo: se genera una vez y se persiste ── */
