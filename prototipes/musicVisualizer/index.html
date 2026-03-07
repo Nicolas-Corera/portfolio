@@ -1719,6 +1719,11 @@
         if (e.clientY >= threshold) {
           clearTimeout(hideControlsTimer);
           document.body.classList.add("controls-visible");
+        } else {
+          clearTimeout(hideControlsTimer);
+          hideControlsTimer = setTimeout(() => {
+            document.body.classList.remove("controls-visible");
+          }, 400);
         }
       });
 
