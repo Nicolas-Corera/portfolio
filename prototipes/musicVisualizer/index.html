@@ -100,7 +100,7 @@
         font-size: 2rem;
         letter-spacing: 0.18em;
         background: linear-gradient(90deg, var(--accent1), var(--accent2));
-        -webkit-background-clip: text;
+        background-clip: text;
         -webkit-text-fill-color: transparent;
         filter: drop-shadow(0 0 16px rgba(0, 255, 224, 0.5));
       }
@@ -397,10 +397,19 @@
       }
       #progress-bar-wrap {
         width: 100%;
+        height: 12px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+        padding: 4px 0;
+        box-sizing: border-box;
+      }
+      #progress-bar-track {
+        width: 100%;
         height: 3px;
         background: rgba(255, 255, 255, 0.06);
         border-radius: 2px;
-        cursor: pointer;
         position: relative;
       }
       #progress-bar {
@@ -408,24 +417,32 @@
         width: 0%;
         background: linear-gradient(90deg, var(--accent1), var(--accent2));
         border-radius: 2px;
-        transition: width 0.2s linear;
         position: relative;
+        transition: width 0.08s linear;
       }
       #progress-bar::after {
         content: "";
         position: absolute;
-        right: -4px;
-        top: -4px;
-        width: 10px;
-        height: 10px;
+        right: -6px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 12px;
+        height: 12px;
         border-radius: 50%;
         background: #fff;
         box-shadow: 0 0 8px var(--accent1);
         opacity: 0;
         transition: opacity 0.2s;
       }
-      #progress-bar-wrap:hover #progress-bar::after {
+      #progress-bar-wrap:hover #progress-bar::after,
+      #progress-bar-wrap.dragging #progress-bar::after {
         opacity: 1;
+      }
+      #progress-bar-wrap.dragging {
+        cursor: grabbing;
+      }
+      #progress-bar-wrap.dragging #progress-bar {
+        transition: none;
       }
 
       .vol-wrap {
@@ -1005,7 +1022,9 @@
           <div class="progress-meta">
             <span id="time-current">0:00</span><span id="time-total">0:00</span>
           </div>
-          <div id="progress-bar-wrap"><div id="progress-bar"></div></div>
+          <div id="progress-bar-wrap">
+            <div id="progress-bar-track"><div id="progress-bar"></div></div>
+          </div>
         </div>
 
         <div class="vol-wrap">
@@ -1129,8 +1148,8 @@
         if (!isActive) playIndex(playlist.length - 1);
       }
       function setupProgress() {
-        // timeupdate is per-element so it's fine; just re-add each time
         audioEl.addEventListener("timeupdate", () => {
+          if (isScrubbing) return; // don't fight the drag
           const p = (audioEl.currentTime / audioEl.duration) * 100 || 0;
           document.getElementById("progress-bar").style.width = p + "%";
           document.getElementById("time-current").textContent = fmt(
@@ -1140,15 +1159,65 @@
             audioEl.duration,
           );
         });
-        // Use a single delegated listener on bar wrap (replace onclick)
-        const bar = document.getElementById("progress-bar-wrap");
-        bar.onclick = (e) => {
-          if (!audioEl || !audioEl.duration) return;
-          const r = e.currentTarget.getBoundingClientRect();
-          audioEl.currentTime =
-            ((e.clientX - r.left) / r.width) * audioEl.duration;
-        };
       }
+
+      // ─── SCRUB (drag on progress bar) ───
+      let isScrubbing = false;
+
+      function scrubPosition(e, bar) {
+        const r = bar.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        return Math.max(0, Math.min(1, (clientX - r.left) / r.width));
+      }
+
+      function initScrub() {
+        const wrap = document.getElementById("progress-bar-wrap");
+        const bar = document.getElementById("progress-bar");
+
+        function startScrub(e) {
+          if (!audioEl || !audioEl.duration) return;
+          isScrubbing = true;
+          wrap.classList.add("dragging");
+          bar.style.transition = "none";
+          moveScrub(e);
+        }
+
+        function moveScrub(e) {
+          if (!isScrubbing || !audioEl || !audioEl.duration) return;
+          e.preventDefault();
+          const ratio = scrubPosition(e, wrap);
+          bar.style.width = ratio * 100 + "%";
+          document.getElementById("time-current").textContent = fmt(
+            audioEl.duration * ratio,
+          );
+        }
+
+        function endScrub(e) {
+          if (!isScrubbing) return;
+          isScrubbing = false;
+          wrap.classList.remove("dragging");
+          bar.style.transition = "";
+          if (audioEl && audioEl.duration) {
+            const ratio = scrubPosition(
+              e.changedTouches ? { clientX: e.changedTouches[0].clientX } : e,
+              wrap,
+            );
+            audioEl.currentTime = audioEl.duration * ratio;
+          }
+        }
+
+        // Mouse
+        wrap.addEventListener("mousedown", startScrub);
+        window.addEventListener("mousemove", moveScrub);
+        window.addEventListener("mouseup", endScrub);
+
+        // Touch
+        wrap.addEventListener("touchstart", startScrub, { passive: false });
+        window.addEventListener("touchmove", moveScrub, { passive: false });
+        window.addEventListener("touchend", endScrub);
+      }
+      initScrub();
+
       function fmt(s) {
         if (!s || isNaN(s)) return "0:00";
         return `${Math.floor(s / 60)}:${Math.floor(s % 60)
@@ -1412,10 +1481,8 @@
       }
 
       function removeFromPlaylist(idx) {
-        URL.revokeObjectURL(playlist[idx].url);
-        playlist.splice(idx, 1);
+        const removed = playlist.splice(idx, 1)[0];
         if (currentIndex === idx) {
-          // Was playing this — stop
           if (audioEl) {
             audioEl.pause();
             audioEl.src = "";
@@ -1427,6 +1494,7 @@
         } else if (currentIndex > idx) {
           currentIndex--;
         }
+        setTimeout(() => URL.revokeObjectURL(removed.url), 5000);
         renderPlaylist();
       }
 
@@ -1561,12 +1629,14 @@
           audioEl.pause();
           audioEl.src = "";
         }
-        playlist.forEach((t) => URL.revokeObjectURL(t.url));
+        const toRevoke = playlist.map((t) => t.url);
         playlist = [];
         currentIndex = -1;
         isPlaying = false;
         updatePlayPauseIcon();
         resetUI();
+        renderPlaylist();
+        setTimeout(() => toRevoke.forEach((u) => URL.revokeObjectURL(u)), 5000);
       });
 
       // Playlist drag-and-drop from outside into panel
@@ -1606,16 +1676,22 @@
       document.addEventListener("keydown", (e) => {
         if ((e.key === "f" || e.key === "F") && !e.ctrlKey && !e.metaKey)
           toggleFS();
-        if (e.key === "Escape" && fsActive) toggleFS();
       });
-      function toggleFS() {
-        fsActive = !fsActive;
+      document.addEventListener("fullscreenchange", () => {
+        fsActive = !!document.fullscreenElement;
         document.body.classList.toggle("fullscreen", fsActive);
         const btn = document.getElementById("fs-btn");
         btn.innerHTML = fsActive
           ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="10" y1="14" x2="3" y2="21"/><line x1="21" y1="3" x2="14" y2="10"/></svg> SALIR`
           : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg> PANTALLA COMPLETA`;
-        setTimeout(resize, 420);
+        setTimeout(resize, 120);
+      });
+      function toggleFS() {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
       }
 
       // ─── ANIMATED TITLE ───
