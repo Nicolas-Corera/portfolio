@@ -17,6 +17,15 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
 
+    <script>
+      if ("scrollRestoration" in history) {
+        history.scrollRestoration = "manual";
+      }
+
+      window.addEventListener("load", () => {
+        window.scrollTo(0, 0);
+      });
+    </script>
     <style>
       /* === VARIABLES & RESET === */
       :root {
@@ -1984,9 +1993,9 @@
                   <small style="font-style: italic; color: #222222;">Esta página se actualizará en unos segundos.</small>
                 </div>`;
 
-                setTimeout(() => {
-                  window.location.reload();
-                }, 3000)
+              setTimeout(() => {
+                window.location.reload();
+              }, 3000);
             } else {
               // Error del servidor
               alert("Hubo un error al enviar el mensaje. Intentá de nuevo.");
