@@ -6,6 +6,7 @@ header('Content-Type: application/json');
 $allowed_origins = [
     'https://www.nicolascorera.com.ar',
     'https://nicolascorera.com.ar',
+    'https://w360069.ferozo.com',
 ];
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 if (in_array($origin, $allowed_origins)) {
@@ -202,7 +203,6 @@ $cuerpo_admin = "<!DOCTYPE html>
     <div class='container'>
         <div class='header'>
             <h1>📬 Nuevo mensaje en tu portfolio</h1>
-            <p>nicolascorera.com</p>
         </div>
         <div class='content'>
             <div class='badge'>Formulario de contacto</div>
@@ -230,7 +230,7 @@ $cuerpo_admin = "<!DOCTYPE html>
             <a href='mailto:{$email}?subject=Re: {$asunto}' class='reply-btn'>Responder a {$nombre}</a>
         </div>
         <div class='footer'>
-            Nicolás Corera · Portfolio · nicolascorera.com
+            Nicolás Corera · Portfolio · nicolascorera.com.ar
         </div>
     </div>
 </body>
@@ -361,11 +361,11 @@ $cuerpo_confirmacion = "<!DOCTYPE html>
             <div class='resumen-box'>
                 <div class='resumen-title'>Tu mensaje</div>
                 <div class='info-row'>
-                    <div class='info-label'>Asunto</div>
+                    <div class='info-label'>Asunto: </div>
                     <div class='info-value'><strong>{$asunto}</strong></div>
                 </div>
                 <div class='info-row' style='align-items:flex-start;'>
-                    <div class='info-label'>Mensaje</div>
+                    <div class='info-label'>Mensaje: </div>
                     <div class='info-value' style='white-space:pre-wrap;'>{$mensaje}</div>
                 </div>
             </div>
@@ -402,12 +402,12 @@ try {
     $mail->CharSet    = 'UTF-8';
 
     // ── Email 1: a vos ──
-    $mail->setFrom($email_remitente, 'Portfolio · Nicolás Corera');
+    $mail->setFrom($email_remitente, 'Nicolás Corera | Consultas');
     $mail->addAddress($email_destino);
     $mail->addReplyTo($email, $nombre);
 
     $mail->isHTML(true);
-    $mail->Subject = "Nuevo mensaje de {$nombre} — Portfolio";
+    $mail->Subject = "Nuevo mensaje de {$nombre} — Consultas";
     $mail->Body    = $cuerpo_admin;
     $mail->AltBody = strip_tags($cuerpo_admin);
 

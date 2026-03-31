@@ -1961,7 +1961,7 @@
           try {
             // ⚠️ Reemplazá esta URL por la dirección real de send.php en tu hosting PHP
             const response = await fetch(
-              "https://api.cuatromoles.com.ar/send.php",
+              "https://w360069.ferozo.com/api/send.php",
               {
                 method: "POST",
                 body: formData,
@@ -1981,7 +1981,12 @@
                   <p style="color:var(--text-muted);font-size:.95rem;">
                     Te responderé a la brevedad. También revisá tu correo para la confirmación.
                   </p>
+                  <small style="font-style: italic; color: #222222;">Esta página se actualizará en unos segundos.</small>
                 </div>`;
+
+                setTimeout(() => {
+                  window.location.reload();
+                }, 3000)
             } else {
               // Error del servidor
               alert("Hubo un error al enviar el mensaje. Intentá de nuevo.");
