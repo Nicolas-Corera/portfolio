@@ -660,7 +660,7 @@
       /* === PROJECTS === */
       .projects-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
         gap: 3rem;
       }
 
@@ -855,14 +855,14 @@
       /* === RESPONSIVE === */
 
       /* Tablet grande / laptop pequeña */
-      @media (max-width: 1024px) {
+      /* @media (max-width: 1024px) {
         .about-content {
           gap: 3rem;
         }
         .projects-grid {
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
         }
-      }
+      } */
 
       /* Tablet */
       @media (max-width: 768px) {
@@ -1497,9 +1497,7 @@
           </div>
           <div class="project-info">
             <div class="project-tech">HTML5 / CSS3 / JavaScript</div>
-            <h3 class="project-title">
-              SOGA MATEMÁTICA | Juego Matemático
-            </h3>
+            <h3 class="project-title">SOGA MATEMÁTICA | Juego Matemático</h3>
             <p
               style="
                 color: var(--text-muted);
@@ -1544,7 +1542,6 @@
             ></a>
           </div>
         </div>
-
       </div>
     </section>
 
@@ -1678,10 +1675,6 @@
     </div>
 
     <!-- Scripts -->
-    <script
-      data-cfasync="false"
-      src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"
-    ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
@@ -1948,6 +1941,54 @@
         document.addEventListener("keydown", (e) => {
           if (e.key === "Escape" && modalOverlay.classList.contains("active"))
             closeModal();
+        });
+
+        // ─── 8. ENVÍO DEL FORMULARIO (AJAX) ───────────────────────────────────
+        const contactForm = document.getElementById("contactForm");
+        const submitBtn = contactForm.querySelector(".btn-submit");
+
+        contactForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          // Estado: cargando
+          const originalHTML = submitBtn.innerHTML;
+          submitBtn.disabled = true;
+          submitBtn.innerHTML =
+            'Enviando… <i class="fa-solid fa-circle-notch fa-spin"></i>';
+
+          const formData = new FormData(contactForm);
+
+          try {
+            const response = await fetch("send.php", {
+              method: "POST",
+              body: formData,
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+              // Éxito → mostrar mensaje dentro del modal
+              contactForm.innerHTML = `
+                <div style="text-align:center;padding:2rem 0;">
+                  <div style="font-size:3rem;margin-bottom:1rem;">✅</div>
+                  <p style="font-family:var(--font-heading);font-size:1.2rem;color:var(--text-main);margin-bottom:.5rem;">
+                    ¡Mensaje enviado!
+                  </p>
+                  <p style="color:var(--text-muted);font-size:.95rem;">
+                    Te responderé a la brevedad. También revisá tu correo para la confirmación.
+                  </p>
+                </div>`;
+            } else {
+              // Error del servidor
+              alert("Hubo un error al enviar el mensaje. Intentá de nuevo.");
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = originalHTML;
+            }
+          } catch (err) {
+            alert("No se pudo conectar con el servidor. Intentá más tarde.");
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalHTML;
+          }
         });
       });
     </script>
