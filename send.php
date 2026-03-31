@@ -1,9 +1,21 @@
 <?php
 // Configuración de headers para JSON
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST');
-header('Access-Control-Allow-Headers: Content-Type');
+
+// CORS: solo aceptar requests desde tu sitio en Vercel
+$allowed_origins = [
+    'https://www.nicolascorera.com.ar',
+    'https://nicolascorera.com.ar',
+];
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if (in_array($origin, $allowed_origins)) {
+    header("Access-Control-Allow-Origin: $origin");
+} else {
+    header('Access-Control-Allow-Origin: https://www.nicolascorera.com.ar');
+}
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
+header('Vary: Origin');
 
 // Manejar OPTIONS request para CORS
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
