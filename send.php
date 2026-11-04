@@ -42,9 +42,9 @@ require 'PHPMailer/src/SMTP.php';
 // ===========================
 // CONFIGURACIÓN DE EMAIL
 // ===========================
-$email_destino   = "nicolas.corera@gmail.com";        // <-- Tu correo donde querés recibir los mensajes
-$email_remitente = "nicolascorera@cuatromoles.com.ar"; // <-- Email desde el que se envía (debe existir en tu hosting)
-$password_email  = "@DonQuijote18";       // <-- Contraseña del email remitente
+$email_destino   = "";        // <-- Tu correo donde querés recibir los mensajes
+$email_remitente = ""; // <-- Email desde el que se envía (debe existir en tu hosting)
+$password_email  = "";       // <-- Contraseña del email remitente
 
 // Configuración SMTP de DonWeb / Ferozo
 $smtp_host   = "dtc036.ferozo.com";
