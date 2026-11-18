@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Modelo de Bohr 3D · Tabla periódica</title>
+    <style>
+      :root {
+        box-sizing: border-box;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        --bg: #f5f6fa;
+        --card: #fff;
+        --ink: #14171f;
+        --mut: #5d6578;
+        --line: #d9dde8;
+        --acc: #2b6cff;
+        --sel: #14171f;
+      }
+      html {
+        scroll-padding-top: env(safe-area-inset-top, 0px);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg: #0e1118;
+          --card: #171b25;
+          --ink: #e8ebf3;
+          --mut: #98a1b5;
+          --line: #2a3040;
+          --acc: #6b9bff;
+          --sel: #fff;
+        }
+      }
+      :root[data-theme="dark"] {
+        --bg: #0e1118;
+        --card: #171b25;
+        --ink: #e8ebf3;
+        --mut: #98a1b5;
+        --line: #2a3040;
+        --acc: #6b9bff;
+        --sel: #fff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        line-height: 1.4;
+      }
+      main {
+        max-width: 1560px;
+        margin: 0 auto;
+        padding: 20px 16px 60px;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin: 0 0 4px;
+      }
+      h2 {
+        font-size: 1.1rem;
+        margin: 28px 0 10px;
+      }
+      p.sub {
+        color: var(--mut);
+        margin: 0 0 16px;
+      }
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 12px;
+      }
+      .scroll {
+        overflow-x: auto;
+      }
+      #pt {
+        display: grid;
+        grid-template-columns: 34px repeat(19, minmax(64px, 1fr));
+        grid-template-rows: 42px repeat(7, auto) 30px auto auto;
+        gap: 4px;
+        min-width: 1300px;
+      }
+      .lb {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: #6b6f9e;
+        line-height: 1.1;
+      }
+      .lb small {
+        font-size: 0.68rem;
+        font-weight: 500;
+        color: #4b86e8;
+      }
+      .ptp {
+        background: #fff;
+        border-color: #e6e8ef;
+      }
+      .ptp .legend {
+        color: #5d6578;
+      }
+      .el {
+        position: relative;
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid transparent;
+        border-radius: 5px;
+        padding: 0;
+        cursor: pointer;
+        font: inherit;
+        overflow: hidden;
+      }
+      .el .n {
+        position: absolute;
+        top: 5px;
+        left: 6px;
+        font-size: 0.8rem;
+        font-weight: 700;
+      }
+      .el .s {
+        font-size: 2.3rem;
+        font-weight: 300;
+        line-height: 1;
+        margin-top: -8px;
+      }
+      .el .t {
+        position: absolute;
+        bottom: 3px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 0.68rem;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .el:hover {
+        filter: saturate(1.6) brightness(0.97);
+      }
+      .el.on {
+        border-color: #14171f;
+        box-shadow: 0 0 0 2px #2b6cff;
+      }
+      .ph {
+        font-size: 0.65rem;
+        color: var(--mut);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px dashed var(--line);
+        border-radius: 6px;
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 16px;
+        margin-top: 12px;
+        font-size: 0.95rem;
+        color: var(--mut);
+      }
+      .legend i {
+        display: inline-block;
+        width: 11px;
+        height: 11px;
+        border-radius: 3px;
+        margin-right: 4px;
+        vertical-align: -1px;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-variant-numeric: tabular-nums;
+        min-width: 620px;
+      }
+      th,
+      td {
+        padding: 8px 10px;
+        text-align: center;
+        border-bottom: 1px solid var(--line);
+        white-space: nowrap;
+      }
+      th {
+        font-size: 0.75rem;
+        letter-spacing: 0.04em;
+        color: var(--mut);
+        background: transparent;
+      }
+      td:first-child,
+      th:first-child {
+        text-align: left;
+      }
+      .btn {
+        background: transparent;
+        border: 1px solid var(--line);
+        color: var(--ink);
+        border-radius: 8px;
+        padding: 5px 10px;
+        cursor: pointer;
+        font: inherit;
+        font-size: 0.85rem;
+      }
+      .btn:hover {
+        border-color: var(--acc);
+        color: var(--acc);
+      }
+      .empty {
+        color: var(--mut);
+        padding: 18px;
+        text-align: center;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+        gap: 14px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .card.big {
+        grid-column: 1/-1;
+      }
+      .card canvas {
+        width: 100%;
+        aspect-ratio: 1;
+        display: block;
+        cursor: grab;
+        background: radial-gradient(circle at 50% 40%, #1b2540, #0a0d15);
+      }
+      .card.big canvas {
+        max-height: 78vh;
+        width: auto;
+        margin: 0 auto;
+      }
+      .card canvas:active {
+        cursor: grabbing;
+      }
+      .card canvas {
+        touch-action: pan-y;
+      }
+      .cap {
+        padding: 10px 12px;
+        font-size: 0.88rem;
+      }
+      .cap .row {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 8px;
+        align-items: center;
+      }
+      .cap code {
+        display: block;
+        margin-top: 4px;
+        font-size: 0.85rem;
+        color: var(--mut);
+        word-break: break-word;
+      }
+      .k {
+        display: inline-flex;
+        gap: 10px;
+        font-size: 0.78rem;
+        color: var(--mut);
+        margin: 0 0 10px;
+        flex-wrap: wrap;
+      }
+      .k i {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 4px;
+      }
+      .ztb {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        justify-content: flex-end;
+        margin-bottom: 8px;
+        font-size: 0.85rem;
+        color: #5d6578;
+      }
+      .ztb .btn {
+        background: #fff;
+        color: #14171f;
+        border-color: #d9dde8;
+        min-width: 40px;
+        font-size: 1.05rem;
+      }
+      @media (max-width: 720px) {
+        main {
+          padding: 14px 10px 50px;
+        }
+        h1 {
+          font-size: 1.25rem;
+        }
+        #pt {
+          grid-template-columns: 24px repeat(19, minmax(44px, 1fr));
+          grid-template-rows: 34px repeat(7, auto) 20px auto auto;
+          gap: 3px;
+          min-width: 900px;
+        }
+        .el .t {
+          display: none;
+        }
+        .el .s {
+          font-size: 1.4rem;
+          margin-top: -2px;
+        }
+        .el .n {
+          font-size: 0.62rem;
+          top: 3px;
+          left: 4px;
+        }
+        .lb {
+          font-size: 0.85rem;
+        }
+        .lb small {
+          font-size: 0.5rem;
+        }
+        .legend {
+          font-size: 0.78rem;
+        }
+        th,
+        td {
+          padding: 7px 8px;
+        }
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .btn {
+          padding: 8px 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.js"></script>
+    <script>
+      (function () {
+        var html = htm.bind(React.createElement);
+        var useState = React.useState,
+          useEffect = React.useEffect,
+          useRef = React.useRef;
+
+        // ---------- Datos: símbolo,nombre,A ----------
+        var RAW =
+          "H,Hidrógeno,1;He,Helio,4;Li,Litio,7;Be,Berilio,9;B,Boro,11;C,Carbono,12;N,Nitrógeno,14;O,Oxígeno,16;F,Flúor,19;Ne,Neón,20;Na,Sodio,23;Mg,Magnesio,24;Al,Aluminio,27;Si,Silicio,28;P,Fósforo,31;S,Azufre,32;Cl,Cloro,35;Ar,Argón,40;K,Potasio,39;Ca,Calcio,40;Sc,Escandio,45;Ti,Titanio,48;V,Vanadio,51;Cr,Cromo,52;Mn,Manganeso,55;Fe,Hierro,56;Co,Cobalto,59;Ni,Níquel,59;Cu,Cobre,64;Zn,Cinc,65;Ga,Galio,70;Ge,Germanio,73;As,Arsénico,75;Se,Selenio,79;Br,Bromo,80;Kr,Criptón,84;Rb,Rubidio,85;Sr,Estroncio,88;Y,Itrio,89;Zr,Circonio,91;Nb,Niobio,93;Mo,Molibdeno,96;Tc,Tecnecio,98;Ru,Rutenio,101;Rh,Rodio,103;Pd,Paladio,106;Ag,Plata,108;Cd,Cadmio,112;In,Indio,115;Sn,Estaño,119;Sb,Antimonio,122;Te,Telurio,128;I,Yodo,127;Xe,Xenón,131;Cs,Cesio,133;Ba,Bario,137;La,Lantano,139;Ce,Cerio,140;Pr,Praseodimio,141;Nd,Neodimio,144;Pm,Prometio,145;Sm,Samario,150;Eu,Europio,152;Gd,Gadolinio,157;Tb,Terbio,159;Dy,Disprosio,163;Ho,Holmio,165;Er,Erbio,167;Tm,Tulio,169;Yb,Iterbio,173;Lu,Lutecio,175;Hf,Hafnio,178;Ta,Tántalo,181;W,Wolframio,184;Re,Renio,186;Os,Osmio,190;Ir,Iridio,192;Pt,Platino,195;Au,Oro,197;Hg,Mercurio,201;Tl,Talio,204;Pb,Plomo,207;Bi,Bismuto,209;Po,Polonio,209;At,Astato,210;Rn,Radón,222;Fr,Francio,223;Ra,Radio,226;Ac,Actinio,227;Th,Torio,232;Pa,Protactinio,231;U,Uranio,238;Np,Neptunio,237;Pu,Plutonio,244;Am,Americio,243;Cm,Curio,247;Bk,Berkelio,247;Cf,Californio,251;Es,Einstenio,252;Fm,Fermio,257;Md,Mendelevio,258;No,Nobelio,259;Lr,Lawrencio,266;Rf,Rutherfordio,267;Db,Dubnio,268;Sg,Seaborgio,269;Bh,Bohrio,270;Hs,Hasio,277;Mt,Meitnerio,278;Ds,Darmstatio,281;Rg,Roentgenio,282;Cn,Copernicio,285;Nh,Nihonio,286;Fl,Flerovio,289;Mc,Moscovio,290;Lv,Livermorio,293;Ts,Teneso,294;Og,Oganesón,294";
+        var ENDS = [2, 10, 18, 36, 54, 86, 118],
+          STARTS = [0, 2, 10, 18, 36, 54, 86];
+        var EL = RAW.split(";").map(function (s, i) {
+          var p = s.split(","),
+            Z = i + 1;
+          var per =
+              ENDS.findIndex(function (m) {
+                return Z <= m;
+              }) + 1,
+            idx = Z - STARTS[per - 1] - 1,
+            g,
+            f = false;
+          if (per === 1) g = idx ? 18 : 1;
+          else if (per <= 3) g = idx < 2 ? idx + 1 : idx + 11;
+          else if (per <= 5) g = idx + 1;
+          else {
+            if (idx < 2) g = idx + 1;
+            else if (idx < 17) {
+              g = 3;
+              f = true;
+            } else g = idx - 13;
+          }
+          return {
+            Z: Z,
+            sym: p[0],
+            name: p[1],
+            A: +p[2],
+            N: +p[2] - Z,
+            per: per,
+            g: g,
+            f: f,
+            idx: idx,
+          };
+        });
+        function shells(Z) {
+          var r = Z,
+            o = [],
+            n = 1;
+          while (r > 0) {
+            var t = Math.min(r, 2 * n * n);
+            o.push(t);
+            r -= t;
+            n++;
+          }
+          return o;
+        }
+        var NONMET = [1, 6, 7, 8, 15, 16, 34],
+          METALOID = [5, 14, 32, 33, 51, 52];
+        var CATS = [
+          ["Alcalinos", "#e3f6f8", "#5fb3bf"],
+          ["Alcalinotérreos", "#ffe6e8", "#e0102f"],
+          ["Transición", "#f4f0ff", "#a78bfa"],
+          ["Post-transición", "#e8f6ee", "#6b9a7e"],
+          ["Metaloides", "#fff7e6", "#c9a67a"],
+          ["No metales", "#eaf4ff", "#6aa9f5"],
+          ["Gases nobles", "#ffe9ef", "#e8799c"],
+          ["Lantánidos", "#eaf3fb", "#7f9db5"],
+          ["Actínidos", "#fff0e6", "#f09a73"],
+          ["Desconocidos", "#efefef", "#9a9aa5"],
+        ];
+        function cat(e) {
+          var Z = e.Z;
+          if (Z >= 109) return 9;
+          if (e.g === 18) return 6;
+          if (NONMET.indexOf(Z) >= 0 || [9, 17, 35, 53].indexOf(Z) >= 0)
+            return 5;
+          if (METALOID.indexOf(Z) >= 0) return 4;
+          if (Z >= 57 && Z <= 71) return 7;
+          if (Z >= 89 && Z <= 103) return 8;
+          if (e.g === 1) return 0;
+          if (e.g === 2) return 1;
+          if (e.g >= 3 && e.g <= 12) return 2;
+          return 3;
+        }
+
+        // ---------- three.js: un solo renderer compartido ----------
+        var S = 560;
+        var renderer = new THREE.WebGLRenderer({
+          alpha: true,
+          antialias: true,
+          preserveDrawingBuffer: true,
+        });
+        renderer.setPixelRatio(1);
+        renderer.setSize(S, S);
+        var registry = new Map();
+        var sphereGeo = new THREE.SphereGeometry(1, 16, 12);
+        var SH_COL = [
+          0x6fb1ff, 0x7ee0c3, 0xffd36b, 0xff9f6b, 0xd69bff, 0xff7fa8, 0xa0e86b,
+        ];
+
+        function buildAtom(e) {
+          var scene = new THREE.Scene();
+          scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+          var dl = new THREE.DirectionalLight(0xffffff, 0.9);
+          dl.position.set(3, 5, 6);
+          scene.add(dl);
+          var root = new THREE.Group();
+          scene.add(root);
+          var pr = 0.14,
+            A = e.A;
+          var R = pr * Math.cbrt(A / 0.5);
+          var nuc = new THREE.InstancedMesh(
+            sphereGeo,
+            new THREE.MeshStandardMaterial({ roughness: 0.45 }),
+            A,
+          );
+          var flags = [],
+            i;
+          for (i = 0; i < A; i++) flags.push(i < e.Z);
+          var seed = e.Z * 13 + 7;
+          function rnd() {
+            seed = (seed * 9301 + 49297) % 233280;
+            return seed / 233280;
+          }
+          for (i = A - 1; i > 0; i--) {
+            var j = Math.floor(rnd() * (i + 1));
+            var t = flags[i];
+            flags[i] = flags[j];
+            flags[j] = t;
+          }
+          var m = new THREE.Matrix4(),
+            c = new THREE.Color(),
+            ga = Math.PI * (3 - Math.sqrt(5));
+          for (i = 0; i < A; i++) {
+            var y = A > 1 ? 1 - (2 * (i + 0.5)) / A : 0,
+              rr = Math.sqrt(1 - y * y),
+              th = ga * i,
+              d = A > 1 ? R * Math.cbrt((i + 0.5) / A) : 0;
+            m.makeScale(pr, pr, pr);
+            m.setPosition(Math.cos(th) * rr * d, y * d, Math.sin(th) * rr * d);
+            nuc.setMatrixAt(i, m);
+            nuc.setColorAt(i, c.set(flags[i] ? 0xe5484d : 0x9aa4b2));
+          }
+          nuc.instanceMatrix.needsUpdate = true;
+          nuc.instanceColor.needsUpdate = true;
+          root.add(nuc);
+          var sh = shells(e.Z),
+            orbits = [],
+            maxR = R;
+          var er = 0.1 + 0.012 * sh.length * sh.length;
+          sh.forEach(function (n, k) {
+            var r = R + 0.75 + k * 0.8;
+            maxR = r;
+            var g = new THREE.Group();
+            g.rotation.set(
+              k % 2 ? 0.9 * (k / 2 + 0.5) : -0.5 * (k + 1) * 0.6,
+              0,
+              k * 0.55,
+            );
+            var pts = [];
+            for (var a = 0; a <= 128; a++)
+              pts.push(
+                new THREE.Vector3(
+                  Math.cos((a / 128) * 6.2832) * r,
+                  Math.sin((a / 128) * 6.2832) * r,
+                  0,
+                ),
+              );
+            g.add(
+              new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints(pts),
+                new THREE.LineBasicMaterial({
+                  color: SH_COL[k % 7],
+                  transparent: true,
+                  opacity: 0.55,
+                }),
+              ),
+            );
+            var col = SH_COL[k % 7],
+              mat = new THREE.MeshStandardMaterial({
+                color: 0x2f7bff,
+                emissive: 0x1b4fd0,
+                emissiveIntensity: 0.6,
+                roughness: 0.3,
+              });
+            var els = [];
+            for (var q = 0; q < n; q++) {
+              var s = new THREE.Mesh(sphereGeo, mat);
+              s.scale.set(er, er, er);
+              g.add(s);
+              els.push(s);
+            }
+            root.add(g);
+            orbits.push({
+              els: els,
+              r: r,
+              n: n,
+              sp: 0.9 / (1 + k * 0.55),
+              ph: k * 0.7,
+            });
+          });
+          var cam = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
+          cam.position.set(0, 0, maxR * 3.1);
+          root.rotation.x = 0.35;
+          return {
+            scene: scene,
+            cam: cam,
+            root: root,
+            orbits: orbits,
+            update: function (t) {
+              orbits.forEach(function (o) {
+                o.els.forEach(function (s, q) {
+                  var a = o.ph + t * o.sp + (q / o.n) * 6.2832;
+                  s.position.set(Math.cos(a) * o.r, Math.sin(a) * o.r, 0);
+                });
+              });
+            },
+          };
+        }
+
+        var rafOn = false,
+          T0 = performance.now();
+        function loop() {
+          var t = (performance.now() - T0) / 1000;
+          registry.forEach(function (en) {
+            var a = en.atom;
+            a.update(t);
+            if (!en.drag) a.root.rotation.y += 0.004;
+            renderer.render(a.scene, a.cam);
+            en.ctx.clearRect(0, 0, S, S);
+            en.ctx.drawImage(renderer.domElement, 0, 0);
+          });
+          requestAnimationFrame(loop);
+        }
+
+        // ---------- Componentes ----------
+        function Card(props) {
+          var e = props.e,
+            ref = useRef(null);
+          useEffect(
+            function () {
+              var cv = ref.current,
+                atom = buildAtom(e),
+                en = { atom: atom, ctx: cv.getContext("2d"), drag: false };
+              registry.set(e.Z, en);
+              var lx = 0,
+                ly = 0;
+              function down(ev) {
+                en.drag = true;
+                lx = ev.clientX;
+                ly = ev.clientY;
+                cv.setPointerCapture(ev.pointerId);
+              }
+              function move(ev) {
+                if (!en.drag) return;
+                atom.root.rotation.y += (ev.clientX - lx) * 0.01;
+                atom.root.rotation.x += (ev.clientY - ly) * 0.01;
+                lx = ev.clientX;
+                ly = ev.clientY;
+              }
+              function up() {
+                en.drag = false;
+              }
+              function wheel(ev) {
+                ev.preventDefault();
+                var z = atom.cam.position.z * (1 + ev.deltaY * 0.001);
+                atom.cam.position.z = Math.max(2, Math.min(z, 60));
+              }
+              cv.addEventListener("pointerdown", down);
+              cv.addEventListener("pointermove", move);
+              cv.addEventListener("pointerup", up);
+              cv.addEventListener("pointercancel", up);
+              cv.addEventListener("wheel", wheel, { passive: false });
+              if (!rafOn) {
+                rafOn = true;
+                loop();
+              }
+              return function () {
+                registry.delete(e.Z);
+                cv.removeEventListener("pointerdown", down);
+                cv.removeEventListener("pointermove", move);
+                cv.removeEventListener("pointerup", up);
+                cv.removeEventListener("wheel", wheel);
+              };
+            },
+            [e.Z],
+          );
+          var sh = shells(e.Z);
+          return html`<div class=${"card" + (props.big ? " big" : "")}>
+            <canvas ref=${ref} width=${S} height=${S}></canvas>
+            <div class="cap">
+              <div class="row">
+                <b>${e.name.toUpperCase()}</b>
+                <span
+                  ><button class="btn" onClick=${props.onBig}>
+                    ${props.big ? "Reducir" : "Ampliar"}
+                  </button>
+                  <button class="btn" onClick=${props.onRemove}>
+                    Quitar
+                  </button></span
+                >
+              </div>
+              <code
+                >${e.sym}: ${e.Z}p+; ${e.N}N;
+                ${sh
+                  .map(function (n) {
+                    return n + "e-";
+                  })
+                  .join(" ")}</code
+              >
+            </div>
+          </div>`;
+        }
+
+        function App() {
+          var _s = useState([]),
+            sel = _s[0],
+            setSel = _s[1];
+          var _b = useState(null),
+            big = _b[0],
+            setBig = _b[1];
+          var _z = useState(1),
+            zoom = _z[0],
+            setZoom = _z[1];
+          function toggle(Z) {
+            setSel(function (s) {
+              return s.indexOf(Z) >= 0
+                ? s.filter(function (z) {
+                    return z !== Z;
+                  })
+                : s.concat(Z);
+            });
+          }
+          var rows = sel.map(function (Z) {
+            return EL[Z - 1];
+          });
+          var cells = EL.map(function (e) {
+            var fb = e.f && e.idx > 2,
+              row = (fb ? e.per + 3 : e.per) + 1,
+              col = (fb ? e.idx + 2 : e.g >= 4 ? e.g + 1 : e.g) + 1;
+            return html`<button
+              key=${e.Z}
+              class=${"el" + (sel.indexOf(e.Z) >= 0 ? " on" : "")}
+              title=${e.name}
+              style=${{
+                gridRow: row,
+                gridColumn: col,
+                background: CATS[cat(e)][1],
+                color: CATS[cat(e)][2],
+              }}
+              onClick=${function () {
+                toggle(e.Z);
+              }}
+            >
+              <span class="n">${e.Z}</span><span class="s">${e.sym}</span
+              ><span class="t">${e.name}</span>
+            </button>`;
+          });
+          return html`<main>
+            <h1>Modelo atómico de Bohr en 3D</h1>
+            <p class="sub">
+              Tocá elementos de la tabla periódica para sumarlos a la tabla de
+              datos y ver su átomo renderizado abajo.
+            </p>
+            <div class="panel ptp">
+              <div class="ztb">
+                <span>Zoom ${Math.round(zoom * 100)}%</span
+                ><button
+                  class="btn"
+                  onClick=${function () {
+                    setZoom(Math.max(0.6, +(zoom - 0.2).toFixed(1)));
+                  }}
+                >
+                  −</button
+                ><button
+                  class="btn"
+                  onClick=${function () {
+                    setZoom(Math.min(1.8, +(zoom + 0.2).toFixed(1)));
+                  }}
+                >
+                  +
+                </button>
+              </div>
+              <div class="scroll">
+                <div id="pt" style=${{ zoom: zoom }}>
+                  ${cells}
+                  ${Array.from({ length: 18 }, function (_, i) {
+                    var g = i + 1,
+                      sub = {
+                        15: "Pnictógenos",
+                        16: "Anfígenos",
+                        17: "Halógenos",
+                      }[g];
+                    return html`<div
+                      key=${"g" + g}
+                      class="lb"
+                      style=${{
+                        gridRow: 1,
+                        gridColumn: (g >= 4 ? g + 1 : g) + 1,
+                      }}
+                    >
+                      ${g}${sub ? html`<small>${sub}</small>` : null}
+                    </div>`;
+                  })}
+                  ${[1, 2, 3, 4, 5, 6, 7].map(function (p) {
+                    return html`<div
+                      key=${"p" + p}
+                      class="lb"
+                      style=${{ gridRow: p + 1, gridColumn: 1 }}
+                    >
+                      ${p}
+                    </div>`;
+                  })}
+                  ${[6, 7].map(function (p) {
+                    return html`<div
+                      key=${"pf" + p}
+                      class="lb"
+                      style=${{ gridRow: p + 4, gridColumn: 1 }}
+                    >
+                      ${p}
+                    </div>`;
+                  })}
+                </div>
+              </div>
+              <div class="legend">
+                ${CATS.map(function (c) {
+                  return html`<span key=${c[0]}
+                    ><i style=${{ background: c[2] }}></i>${c[0]}</span
+                  >`;
+                })}
+              </div>
+            </div>
+
+            <h2>
+              Tabla de elementos seleccionados
+              ${sel.length
+                ? html`<button
+                    class="btn"
+                    style=${{ marginLeft: 8 }}
+                    onClick=${function () {
+                      setSel([]);
+                      setBig(null);
+                    }}
+                  >
+                    Vaciar
+                  </button>`
+                : null}
+            </h2>
+            <div class="panel scroll">
+              ${rows.length === 0
+                ? html`<div class="empty">
+                    Todavía no elegiste ningún elemento.
+                  </div>`
+                : html` <table>
+                    <thead>
+                      <tr>
+                        ${[
+                          "ELEMENTO",
+                          "SÍMBOLO",
+                          "A",
+                          "Z",
+                          "p+",
+                          "e-",
+                          "N",
+                          "PERIODO",
+                          "GRUPO",
+                          "",
+                        ].map(function (h, i) {
+                          return html`<th key=${i}>${h}</th>`;
+                        })}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${rows.map(function (e) {
+                        return html`<tr key=${e.Z}>
+                          <td><b>${e.name.toUpperCase()}</b></td>
+                          <td>${e.sym.toUpperCase()}</td>
+                          <td>${e.A}</td>
+                          <td>${e.Z}</td>
+                          <td>${e.Z}</td>
+                          <td>${e.Z}</td>
+                          <td>${e.N}</td>
+                          <td>${e.per}</td>
+                          <td>${e.g}</td>
+                          <td>
+                            <button
+                              class="btn"
+                              onClick=${function () {
+                                toggle(e.Z);
+                              }}
+                            >
+                              ×
+                            </button>
+                          </td>
+                        </tr>`;
+                      })}
+                    </tbody>
+                  </table>`}
+            </div>
+
+            <h2>Modelo de Bohr</h2>
+            <div class="k">
+              <span
+                ><i style=${{ background: "#e5484d" }}></i>protones (p+)</span
+              ><span
+                ><i style=${{ background: "#9aa4b2" }}></i>neutrones (N)</span
+              ><span
+                ><i style=${{ background: "#2f7bff" }}></i>electrones (e-)</span
+              ><span>Arrastrá para rotar · rueda para zoom</span>
+            </div>
+            ${rows.length === 0
+              ? html`<div class="panel empty">
+                  Los modelos aparecen acá a medida que sumás elementos.
+                </div>`
+              : html`<div class="grid">
+                  ${rows.map(function (e) {
+                    return html`<${Card}
+                      key=${e.Z}
+                      e=${e}
+                      big=${big === e.Z}
+                      onBig=${function () {
+                        setBig(big === e.Z ? null : e.Z);
+                      }}
+                      onRemove=${function () {
+                        toggle(e.Z);
+                      }}
+                    />`;
+                  })}
+                </div>`}
+            <p class="sub" style=${{ marginTop: 20, fontSize: ".8rem" }}>
+              Capas con el llenado clásico 2n² (2, 8, 18, 32…), por eso el Ca
+              queda 2-8-10. A = número másico (isótopo más común o más estable);
+              N = A − Z. Lantánidos y actínidos figuran en el grupo 3.
+            </p>
+          </main>`;
+        }
+        ReactDOM.createRoot(document.getElementById("root")).render(
+          React.createElement(App),
+        );
+      })();
+    </script>
+  </body>
+</html>
